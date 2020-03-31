@@ -1,0 +1,49 @@
+- name: install and start httpd
+  hosts: web1
+  become: yes
+  #become_method: sudo
+  become_user: root
+  #become_ask_pass: false
+  
+  tasks:
+  - name: install epel repo
+    yum: name=epel-release state=latest
+
+  - name: install python bindings for selinux
+    yum: name={{item}} state=latest
+    with_items:
+    - libselinux-python
+    - libsemanage-python
+
+  - name: test to see if selinux is running
+    command: getenforce
+    register: sestatus
+    changed_when: false
+
+  - name: install httpd
+    yum: name=httpd state=latest
+    notify: restart httpd
+
+  - name: start httpd service
+    service: name=httpd state=started enabled=yes
+
+  - name: copy index.html
+    template: src=index.html.j2 dest=/var/www/html/index.html
+
+  - name: install firewalld
+    yum: name=firewalld state=latest
+
+  - name: restart dbus to prevent failed start firewalld service
+    service: name=dbus state=restarted
+
+  - name: start firewalld service
+    service: name=firewalld state=started enabled=yes
+
+  - name: insert firewalld rule
+    firewalld: service=http permanent=true state=enabled immediate=yes
+
+  handlers:
+  - name: restart httpd
+    service: name=httpd state=restarted
+
+

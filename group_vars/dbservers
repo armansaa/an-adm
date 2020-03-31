@@ -1,0 +1,6 @@
+mysql_port: 3306
+dbrootpassword: 
+dbrootpasswordnew: RAHASIA
+dbname: trainingpod26
+dbuser: student
+dbpassword: secret
